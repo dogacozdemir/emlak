@@ -16,9 +16,18 @@ NC='\033[0m' # No Color
 
 # Check if running as root
 if [ "$EUID" -eq 0 ]; then 
-   echo -e "${RED}Please do not run as root${NC}"
-   exit 1
+   echo -e "${RED}⚠️  Warning: Running as root is not recommended${NC}"
+   echo -e "${YELLOW}Please run this script as the site owner user (usually the CloudPanel site user)${NC}"
+   echo -e "${YELLOW}Example: su - username (then run the script)${NC}"
+   read -p "Continue anyway? (y/N): " -n 1 -r
+   echo
+   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+       exit 1
+   fi
 fi
+
+# Show current user
+echo -e "${GREEN}Running as user: $(whoami)${NC}"
 
 # Get current directory
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -29,7 +38,15 @@ echo -e "${GREEN}Project directory: $PROJECT_DIR${NC}"
 # Check if pnpm is installed
 if ! command -v pnpm &> /dev/null; then
     echo -e "${YELLOW}pnpm not found. Installing pnpm...${NC}"
-    npm install -g pnpm
+    if [ "$EUID" -eq 0 ]; then
+        npm install -g pnpm
+    else
+        echo -e "${YELLOW}Attempting to install pnpm globally (may require sudo)...${NC}"
+        sudo npm install -g pnpm || npm install -g pnpm --user || {
+            echo -e "${RED}Failed to install pnpm. Please install manually: npm install -g pnpm${NC}"
+            exit 1
+        }
+    fi
 else
     echo -e "${GREEN}pnpm is installed ($(pnpm --version))${NC}"
 fi
@@ -72,7 +89,12 @@ pnpm db:generate || npm run db:generate
 
 # Run migrations
 echo -e "${GREEN}Running database migrations...${NC}"
-pnpm db:migrate:deploy || npm run db:migrate:deploy
+if pnpm db:migrate:deploy 2>/dev/null || npm run db:migrate:deploy 2>/dev/null; then
+    echo -e "${GREEN}Migrations completed successfully${NC}"
+else
+    echo -e "${YELLOW}Migration failed. Make sure DATABASE_URL is correct in .env file${NC}"
+    echo -e "${YELLOW}You can run migrations manually later${NC}"
+fi
 
 # Build backend
 echo -e "${GREEN}Building backend...${NC}"

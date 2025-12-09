@@ -69,14 +69,24 @@ CORS_ORIGIN="https://emlak.calenius.io"
 For a faster deployment, you can use the automated deployment script:
 
 ```bash
+# Important: Run as the site owner user (not root)
+# In CloudPanel, this is usually the user that owns the site directory
+# Example: If site is owned by 'clp-user', switch to that user:
+# su - clp-user
+
 # Clone repository
 cd /home/$(whoami)/sites/emlak.calenius.io
+# OR if you know the exact path:
+# cd /home/clp-user/sites/emlak.calenius.io
+
 git clone https://github.com/dogacozdemir/emlak.git .
 
 # Run deployment script
 chmod +x scripts/deploy-cloudpanel.sh
 ./scripts/deploy-cloudpanel.sh
 ```
+
+**Note:** The script will warn if run as root. It's recommended to run as the site owner user for proper file permissions.
 
 The script will:
 - Check and install pnpm if needed
