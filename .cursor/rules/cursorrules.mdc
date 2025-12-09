@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+---
+# ---------- CURSORRULES ----------
+# Bu dosya Cursor projesinin en tepesine eklenecek. (Tüm patch'lerde tekrar okunacak)
+
+1. TİP GÜVENLİĞİ & STANDARTLAR
+   - Tüm kod TypeScript olacak. Backend için Node.js + Express + ts-node veya build pipeline.
+   - ORM: Prisma kullanılacak; schema tip güvenli olmalı.
+   - Frontend Next.js (App Router) + TypeScript.
+
+2. DOSYA YAPISI & MODÜLERLİK
+   - Monorepo: /apps/frontend, /apps/backend, /packages/ui, /packages/lib
+   - Her modül tek sorumluluklu, küçük, test edilebilir dosyalar.
+
+3. KOD KALİTESİ
+   - ESLint + Prettier + Husky pre-commit hook
+   - Tüm API contract’ları için Zod şemaları (request + response).
+   - Her fonksiyon için error handling ve logging (sentry placeholder).
+
+4. UI / TASARIM
+   - Tailwind + shadcn/ui component standardı kullanılacak.
+   - Componentler yeniden kullanılabilir, küçük ve dokumente edilecek.
+   - UI responsive, mobile-first ve modern (soft gradients, glassmorphism).
+
+5. HARİTA & KONUM
+   - Leaflet + react-leaflet kullan (KKTC için açık kaynak lisansı avantajı).
+   - Location model: {lat, lng, district, neighborhood}. Harita pinleri cluster destekli.
+
+6. MEDYA
+   - Cloudinary ile image upload ve optimizasyon.
+   - Her resim için thumbnail, webp dönüşümü şart.
+
+7. AUTH & GÜVENLİK
+   - JWT + refresh token. Roles: admin, agent, user.
+   - Rate limiting, input validation, CORS sıkı.
+   - Hassas veriler env ile yönetilecek, .env.example sağlanacak.
+
+8. BOOKING (Rezervasyon)
+   - Takvim tabanlı, admin onaylı rezervasyon akışı.
+   - Rezervasyon slotları conflict kontrolü (atomic check).
+   - E-posta bildirimleri için mailer (Resend/SMTP) placeholder.
+
+9. API & DOCS
+   - REST API (OpenAPI/Swagger stub) + örnek istek/yanıt.
+   - Her endpoint için Zod + example payload.
+
+10. TEST & CI
+    - Unit testler (vitest/jest) + integration tests (backend endpoints).
+    - GitHub Actions CI: lint -> test -> build -> deploy-staging (if tag).
+
+11. DEPLOY
+    - Staging ve Production pipeline’ı.
+    - DB migrations: Prisma migrate kullan.
+    - Backend default port: 5001 (yerel makinede 5000 kullanımına dikkat).
+
+12. CURSOR PATCH/PR STRATEJİSİ
+    - PR'lar küçük, tek amaçlı ve açıklayıcı olmalı.
+    - Her patch ile bir README güncellemesi gelmeli.
+    - Cursor’ın her kod patch’inde commit message formatı: feat|fix|chore(scope): kısa-açıklama
+
+13. DOKUMENTASYON
+    - README kök düzeyde: setup, env, run, test, deploy.
+    - Teknik doküman: DB schema PNG/markdown, api contract örnekleri.
+
+14. GÖRSEL TASARIM ARADIĞI
+    - UI mockup/örnek renk paleti ver: primary / secondary / neutral.
+    - Stil rehberi (fonts, spacing scale) kısa bir şablon ekle.
+
+15. YAPMAMASI GEREKENLER
+    - Hızlı, kirli prototipleme yapma; production-ready scaffold üret.
+    - Büyük tek dosyalar (500+ satır) oluşturma.
+
+# ---------- END CURSORRULES ----------

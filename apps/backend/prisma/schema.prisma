@@ -1,0 +1,180 @@
+// Prisma Schema for KKTC Real Estate Platform
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Roles Enum
+enum Role {
+  USER
+  AGENT
+  ADMIN
+}
+
+// Property Types
+enum PropertyType {
+  APARTMENT
+  VILLA
+  HOUSE
+  LAND
+  COMMERCIAL
+  STUDIO
+}
+
+// Booking Status
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+// User Model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  properties Property[]
+  bookings   Booking[]
+  adminLogs  AdminLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// Location Model (KKTC Districts and Neighborhoods)
+model Location {
+  id          String   @id @default(cuid())
+  lat         Float
+  lng         Float
+  district    String   // e.g., "Famagusta", "Kyrenia", "Nicosia"
+  neighborhood String?  // e.g., "Alsancak", "Girne Merkez"
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  properties Property[]
+
+  @@index([district])
+  @@index([lat, lng])
+}
+
+// Property Model
+model Property {
+  id          String       @id @default(cuid())
+  title       String
+  description String       @db.Text
+  price       Float
+  propertyType PropertyType
+  bedrooms    Int?
+  bathrooms   Int?
+  area        Float?       // in square meters
+  furnished   Boolean      @default(false)
+  available   Boolean      @default(true)
+  featured    Boolean      @default(false)
+  
+  // Foreign Keys
+  userId     String
+  locationId String
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location   Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  images     PropertyImage[]
+  bookings   Booking[]
+
+  @@index([userId])
+  @@index([locationId])
+  @@index([propertyType])
+  @@index([price])
+  @@index([available])
+  @@index([featured])
+}
+
+// Property Images Model
+model PropertyImage {
+  id         String   @id @default(cuid())
+  url        String   // Cloudinary URL
+  publicId   String   // Cloudinary public ID
+  thumbnailUrl String? // Thumbnail version
+  order      Int      @default(0) // Display order
+  isPrimary  Boolean  @default(false)
+  
+  // Foreign Keys
+  propertyId String
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([propertyId, isPrimary])
+}
+
+// Booking Model (Viewing Appointments)
+model Booking {
+  id          String        @id @default(cuid())
+  date        DateTime      // Appointment date and time
+  status      BookingStatus @default(PENDING)
+  notes       String?       @db.Text
+  adminNotes  String?       @db.Text // Admin can add notes
+  
+  // Foreign Keys
+  userId     String
+  propertyId String
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([date])
+  @@index([status])
+  @@index([propertyId, date]) // For conflict checking
+}
+
+// Admin Log Model (Audit trail)
+model AdminLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g., "CREATE_PROPERTY", "APPROVE_BOOKING"
+  entity    String   // e.g., "Property", "Booking"
+  entityId  String   // ID of the affected entity
+  details   Json?    // Additional details as JSON
+  
+  // Foreign Keys
+  adminId   String
+  
+  createdAt DateTime @default(now())
+
+  // Relations
+  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
